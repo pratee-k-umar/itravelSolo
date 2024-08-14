@@ -13,7 +13,9 @@ import com.google.android.gms.auth.api.identity.Identity
 import kotlinx.coroutines.launch
 
 @Composable
-fun AppNavigation(onSignOut: () -> Unit) {
+fun AppNavigation(
+    onSignOut: () -> Unit
+) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -27,18 +29,6 @@ fun AppNavigation(onSignOut: () -> Unit) {
         composable("home") {
             HomeScreen(
                 userData = googleAuthUiClient.getSignedInUser(),
-                onSignOut = {
-                    scope.launch {
-                        googleAuthUiClient.signOut()
-                        onSignOut()
-                        navController.navigate("sign_in") {
-                            popUpTo(navController.graph.startDestinationId) {
-                                inclusive = true
-                            }
-                            launchSingleTop = true
-                        }
-                    }
-                }
             )
         }
 
@@ -60,3 +50,16 @@ fun AppNavigation(onSignOut: () -> Unit) {
         }
     }
 }
+
+//onSignOut = {
+//    scope.launch {
+//        googleAuthUiClient.signOut()
+//        onSignOut()
+//        navController.navigate("sign_in") {
+//            popUpTo(navController.graph.startDestinationId) {
+//                inclusive = true
+//            }
+//            launchSingleTop = true
+//        }
+//    }
+//}

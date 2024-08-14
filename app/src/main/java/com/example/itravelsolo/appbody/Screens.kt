@@ -24,14 +24,20 @@ sealed class Screens(
             R.drawable.baseline_add_home_24
         )
         data object Map: BottomNavigation (
-            "Map",
-            "map",
-            R.drawable.baseline_map_24
+            "Explore",
+            "explore",
+            R.drawable.baseline_people_alt_24
+        )
+        data object Settings: BottomNavigation (
+            "Settings",
+            "settings",
+            R.drawable.baseline_settings_24
         )
     }
 }
 
 val screenInNavigation = listOf(
     Screens.BottomNavigation.Home,
-    Screens.BottomNavigation.Map
+    Screens.BottomNavigation.Map,
+    Screens.BottomNavigation.Settings
 )
