@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "669120268526",
+    "project_id": "itravelsolo-b3eb0",
+    "storage_bucket": "itravelsolo-b3eb0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:669120268526:android:8994299fcbde155dbe8bff",
+        "android_client_info": {
+          "package_name": "com.example.itravelsolo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAY6wOCHhLBUmDE81hsccv9ZlxcniMEVZc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
