@@ -5,7 +5,7 @@ import com.example.itravelsolo.R
 
 sealed class Screens(
     val title: String,
-    val route: String
+    val route: String,
 ) {
     sealed class UserProfileScreen (
         upsTitle: String,
@@ -21,23 +21,23 @@ sealed class Screens(
         data object Home: BottomNavigation (
             "Home",
             "home",
-            R.drawable.baseline_add_home_24
+            R.drawable.baseline_home_filled_24
         )
-        data object Map: BottomNavigation (
-            "Explore",
-            "explore",
-            R.drawable.baseline_people_alt_24
+        data object Activity: BottomNavigation (
+            "Activity",
+            "activity",
+            R.drawable.round_activity_24
         )
-        data object Settings: BottomNavigation (
-            "Settings",
-            "settings",
-            R.drawable.baseline_settings_24
+        data object Account: BottomNavigation (
+            "Account",
+            "account",
+            R.drawable.baseline_account_circle_24
         )
     }
 }
 
 val screenInNavigation = listOf(
     Screens.BottomNavigation.Home,
-    Screens.BottomNavigation.Map,
-    Screens.BottomNavigation.Settings
+    Screens.BottomNavigation.Activity,
+    Screens.BottomNavigation.Account
 )

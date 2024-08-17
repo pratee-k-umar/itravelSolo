@@ -1,5 +1,8 @@
 package com.example.itravelsolo.appbody
 
+import android.app.Activity
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -10,8 +13,8 @@ import com.example.itravelsolo.auth.GoogleAuthUiClient
 import com.example.itravelsolo.auth.SignInScreen
 import com.example.itravelsolo.auth.SignInState
 import com.google.android.gms.auth.api.identity.Identity
-import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun AppNavigation(
     onSignOut: () -> Unit
@@ -25,8 +28,8 @@ fun AppNavigation(
             oneTapClient = Identity.getSignInClient(context)
         )
     }
-    NavHost(navController = navController, startDestination = "home") {
-        composable("home") {
+    NavHost(navController = navController, startDestination = Screens.BottomNavigation.Home.route) {
+        composable(Screens.BottomNavigation.Home.route) {
             HomeScreen(
                 userData = googleAuthUiClient.getSignedInUser(),
             )
@@ -43,23 +46,25 @@ fun AppNavigation(
             )
         }
 
-        composable("profile_screen") {
-//            ProfileScreen(
-//                userData = googleAuthUiClient.getSignedInUser()
-//            )
+        composable(Screens.BottomNavigation.Activity.route) {
+            Activity()
+        }
+
+        composable(Screens.BottomNavigation.Account.route) {
+            UserProfile(
+//                onSignOut = {
+//                    scope.launch {
+//                        googleAuthUiClient.signOut()
+//                        onSignOut()
+//                        navController.navigate("sign_in") {
+//                            popUpTo(navController.graph.startDestinationId) {
+//                                inclusive = true
+//                            }
+//                            launchSingleTop = true
+//                        }
+//                    }
+//                }
+            )
         }
     }
 }
-
-//onSignOut = {
-//    scope.launch {
-//        googleAuthUiClient.signOut()
-//        onSignOut()
-//        navController.navigate("sign_in") {
-//            popUpTo(navController.graph.startDestinationId) {
-//                inclusive = true
-//            }
-//            launchSingleTop = true
-//        }
-//    }
-//}

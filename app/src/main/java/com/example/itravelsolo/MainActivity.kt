@@ -1,6 +1,7 @@
 package com.example.itravelsolo
 
 import android.app.Activity.RESULT_OK
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -8,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -22,6 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.itravelsolo.appbody.AppNavigation
+import com.example.itravelsolo.appbody.Screens
 import com.example.itravelsolo.auth.GoogleAuthUiClient
 import com.example.itravelsolo.auth.SignInScreen
 import com.example.itravelsolo.auth.SignInViewModel
@@ -30,6 +33,7 @@ import com.google.android.gms.auth.api.identity.Identity
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -45,11 +49,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun Navigation() {
     val context = LocalContext.current
     val googleAuthUiClient by lazy {
-        GoogleAuthUiClient (
+        GoogleAuthUiClient(
             context = context,
             oneTapClient = Identity.getSignInClient(context)
         )
@@ -61,14 +66,14 @@ fun Navigation() {
             val viewModel = viewModel<SignInViewModel>()
             val state by viewModel.state.collectAsState()
             LaunchedEffect(key1 = Unit) {
-                if(googleAuthUiClient.getSignedInUser() != null) {
-                    navController.navigate("home_screen")
+                if (googleAuthUiClient.getSignedInUser() != null) {
+                    navController.navigate(Screens.BottomNavigation.Home.route)
                 }
             }
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.StartIntentSenderForResult(),
-                onResult = {result->
-                    if(result.resultCode == RESULT_OK) {
+                onResult = { result ->
+                    if (result.resultCode == RESULT_OK) {
                         scope.launch {
                             val signInResult = googleAuthUiClient.signInWithIntent(
                                 intent = result.data ?: return@launch
@@ -78,10 +83,13 @@ fun Navigation() {
                     }
                 }
             )
-            
+
             LaunchedEffect(key1 = state.isSignInSuccessful) {
-                if(state.isSignInSuccessful) {
-                    navController.navigate("home_screen")
+                if (state.isSignInSuccessful) {
+                    navController.navigate(
+                        Screens.BottomNavigation.Home
+                            .route
+                    )
                     viewModel.resetState()
                 }
             }
@@ -101,12 +109,12 @@ fun Navigation() {
             )
         }
 
-        composable("home_screen") {
+        composable(Screens.BottomNavigation.Home.route) {
             AppNavigation(
                 onSignOut = {
                     navController.navigate("sign_in") {
                         launchSingleTop = true
-                        popUpTo("home_screen") { inclusive = true }
+                        popUpTo(Screens.BottomNavigation.Home.route) { inclusive = true }
                     }
                 }
             )
