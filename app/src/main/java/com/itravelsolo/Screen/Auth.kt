@@ -23,10 +23,13 @@ fun Auth(navController: NavHostController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = {
-                navController.navigate("home")
-            }) {
-                Text("Logout")
+            Text("Create an account")
+            Button(
+                onClick = {
+                    navController.navigate("home")
+                }
+            ) {
+                Text("Login")
             }
         }
     }
