@@ -13,10 +13,9 @@
         android:theme="@style/Theme.ItravelSolo">
         <activity
             android:name=".MainActivity"
-            android.theme="@style/Theme.App.Starting"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.ItravelSolo">
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
