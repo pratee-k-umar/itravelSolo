@@ -1,9 +1,9 @@
 package com.itravelsolo.Screen
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,12 +15,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +32,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -53,6 +52,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import com.itravelsolo.R
@@ -65,8 +65,26 @@ private enum class AuthState {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalWearMaterialApi::class)
 @Composable
-fun Auth(navController: NavHostController) {
+fun Auth(
+    navController: NavHostController,
+    authViewModel: AuthViewModel = viewModel()
+) {
     var authState by remember { mutableStateOf(AuthState.None) }
+    val authResult by authViewModel.authResult.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(authResult) {
+        when(val result = authResult) {
+            is AuthResult.Success -> {
+                Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                navController.navigate("home")
+            }
+            is AuthResult.Error -> {
+                Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+            }
+            else -> {}
+        }
+    }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -131,7 +149,8 @@ fun Auth(navController: NavHostController) {
                                 formTitle = "Welcome back",
                                 buttonText = "Sign In",
                                 showNameField = false,
-                                onSubmit = {  },
+                                isLoading = authResult is AuthResult.Loading,
+                                onSubmit = { name, email, password ->  },
                                 onDismiss = { authState = AuthState.None }
                             )
                         }
@@ -140,7 +159,10 @@ fun Auth(navController: NavHostController) {
                                 formTitle = "Create your account",
                                 buttonText = "Sign Up",
                                 showNameField = true,
-                                onSubmit = {  },
+                                isLoading = authResult is AuthResult.Loading,
+                                onSubmit = { name, email, password ->
+                                    authViewModel.signUpUser(name, email, password)
+                                },
                                 onDismiss = { authState = AuthState.None }
                             )
                         }
@@ -156,7 +178,8 @@ fun AuthForm(
     formTitle: String,
     buttonText: String,
     showNameField: Boolean,
-    onSubmit: () -> Unit,
+    isLoading: Boolean,
+    onSubmit: (String, String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
@@ -244,10 +267,13 @@ fun AuthForm(
                 )
             }
             Button(
-                onClick = onSubmit,
+                onClick = {
+                    onSubmit(name, email, password)
+                },
                 shape = RoundedCornerShape(30.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2c2c2c)),
-                modifier = Modifier.height(60.dp)
+                modifier = Modifier.height(60.dp),
+                enabled = !isLoading
             ) {
                 Text(
                     buttonText,

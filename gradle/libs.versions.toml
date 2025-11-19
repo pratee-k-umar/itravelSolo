@@ -1,5 +1,7 @@
 [versions]
 agp = "8.13.1"
+apolloNormalizedCacheSqlite3 = "3.8.2"
+apolloRuntime = "3.8.6"
 converterMoshi = "3.0.0"
 kotlin = "2.0.21"
 coreKtx = "1.10.1"
@@ -17,6 +19,7 @@ foundation = "1.9.4"
 composeMaterial = "1.5.5"
 lifecycleViewmodelKtx = "2.9.4"
 loggingInterceptor = "5.3.0"
+loggingInterceptorVersion = "4.11.0"
 moshiKotlin = "1.15.2"
 retrofit = "3.0.0"
 
@@ -27,6 +30,8 @@ androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscree
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 androidx-navigation-compose = {group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation"}
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+apollo-normalized-cache-sqlite3 = { module = "com.apollographql.apollo3:apollo-normalized-cache-sqlite3", version.ref = "apolloNormalizedCacheSqlite3" }
+apollo-runtime = { module = "com.apollographql.apollo3:apollo-runtime", version.ref = "apolloRuntime" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -45,6 +50,7 @@ androidx-foundation = { group = "androidx.compose.foundation", name = "foundatio
 androidx-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "composeMaterial" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
+logging-interceptor-v4110 = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptorVersion" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshiKotlin" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 
