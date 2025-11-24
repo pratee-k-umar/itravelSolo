@@ -12,6 +12,6 @@ val apolloClient: ApolloClient by lazy {
 
     val okHttpClient: OkHttpClient = OkHttpClient.Builder().addInterceptor(logging).build()
 
-    // laptop ip when physical device || 10.0.2.2 when emulator is being used
-    ApolloClient.Builder().serverUrl("http://192.168.125.129:8000/graphql/").okHttpClient(okHttpClient).build()
+    // laptop ip for physical device || 10.0.2.2 for emulator
+    ApolloClient.Builder().serverUrl("http://10.0.2.2:8000/graphql/").okHttpClient(okHttpClient).build()
 }

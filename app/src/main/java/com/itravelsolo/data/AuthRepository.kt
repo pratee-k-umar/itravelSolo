@@ -1,8 +1,12 @@
 package com.itravelsolo.data
 
 import com.apollographql.apollo3.api.ApolloResponse
+import com.itravelSolo.apollo.RequestEmailVerificationOtpMutation
+import com.itravelSolo.apollo.SignInMutation
 import com.itravelSolo.apollo.SignUpMutation
+import com.itravelSolo.apollo.VerifyEmailOtpMutation
 import com.itravelSolo.apollo.type.RegisterUserInput
+import com.itravelSolo.apollo.type.RequestEmailVerificationOTP
 import com.itravelsolo.apollo.apolloClient
 
 class AuthRepository {
@@ -17,5 +21,14 @@ class AuthRepository {
             lastName = lastName
         )
         return apolloClient.mutation(SignUpMutation(input)).execute()
+    }
+    suspend fun signInUser(email: String, password: String): ApolloResponse<SignInMutation.Data> {
+        return apolloClient.mutation(SignInMutation(email = email, password = password)).execute()
+    }
+    suspend fun requestEmailVerificationOtp(email: String): ApolloResponse<RequestEmailVerificationOtpMutation.Data> {
+        return apolloClient.mutation(RequestEmailVerificationOtpMutation(email = email)).execute()
+    }
+    suspend fun verifyEmailOTP(email: String, otp: String): ApolloResponse<VerifyEmailOtpMutation.Data> {
+        return apolloClient.mutation(VerifyEmailOtpMutation(email = email, otp = otp)).execute()
     }
 }

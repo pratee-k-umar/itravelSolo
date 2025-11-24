@@ -59,6 +59,8 @@ dependencies {
     implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
     implementation("com.apollographql.apollo3:apollo-normalized-cache-sqlite:3.8.2")
     implementation(libs.logging.interceptor.v4110)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.androidx.datastore.core)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

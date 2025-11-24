@@ -1,0 +1,27 @@
+mutation SignIn($email: String!, $password: String!) {
+    loginUser(email: $email, password: $password) {
+        success
+        message
+        token
+        refreshToken
+        user {
+            id
+            firstName
+            lastName
+            email
+            emailVerified
+            mfaEnabled
+            isActive
+            profile {
+                profileImage
+                bio
+                profession
+                address
+                phoneNumber
+                profession
+                gender
+                dateOfBirth
+            }
+        }
+    }
+}

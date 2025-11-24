@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,9 +21,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -35,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,6 +54,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -56,31 +63,49 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import com.itravelsolo.R
+import kotlinx.coroutines.delay
 
 private enum class AuthState {
     None,
     SignUp,
-    SignIn
+    SignIn,
+    OTP
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalWearMaterialApi::class)
 @Composable
-fun Auth(
-    navController: NavHostController,
-    authViewModel: AuthViewModel = viewModel()
-) {
+fun Auth(navController: NavHostController) {
     var authState by remember { mutableStateOf(AuthState.None) }
-    val authResult by authViewModel.authResult.collectAsState()
     val context = LocalContext.current
+    val authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(context)
+    )
+    val authResult by authViewModel.authResult.collectAsState()
 
     LaunchedEffect(authResult) {
         when(val result = authResult) {
-            is AuthResult.Success -> {
+            is AuthResult.OTPSent -> {
+                Toast.makeText(context, "OTP sent", Toast.LENGTH_SHORT).show()
+                authState = AuthState.OTP
+                authViewModel.resetResult()
+            }
+            is AuthResult.AuthenticationSuccess -> {
                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
-                navController.navigate("home")
+                navController.navigate("home") {
+                    popUpTo(0) { inclusive = true }
+                }
+                authViewModel.resetResult()
+            }
+            is AuthResult.GeneralSuccess -> {
+                Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                navController.navigate("home") {
+                    popUpTo(0) { inclusive = true }
+                }
+                authViewModel.resetResult()
             }
             is AuthResult.Error -> {
                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                authViewModel.resetResult()
             }
             else -> {}
         }
@@ -96,7 +121,9 @@ fun Auth(
             modifier = Modifier.fillMaxSize()
         )
         Column(
-            modifier = Modifier.fillMaxSize().padding(top = 100.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 100.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -121,7 +148,13 @@ fun Auth(
             modifier = Modifier.fillMaxSize()
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 28.dp).clip(RoundedCornerShape(40.dp)).background(Color.White).padding(32.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 28.dp)
+                    .clip(RoundedCornerShape(40.dp))
+                    .background(Color.White)
+                    .padding(32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -138,19 +171,15 @@ fun Auth(
                     label = "Auth Form Animation"
                 ) { targetSpec ->
                     when(targetSpec) {
-                        AuthState.None -> {
-                            AuthBox(
-                                onSignUpClicked = { authState = AuthState.SignUp },
-                                onSignInClicked = { authState = AuthState.SignIn }
-                            )
-                        }
                         AuthState.SignIn -> {
                             AuthForm(
                                 formTitle = "Welcome back",
                                 buttonText = "Sign In",
                                 showNameField = false,
                                 isLoading = authResult is AuthResult.Loading,
-                                onSubmit = { name, email, password ->  },
+                                onSubmit = { _, email, password ->
+                                    authViewModel.signInUser(email, password)
+                                },
                                 onDismiss = { authState = AuthState.None }
                             )
                         }
@@ -164,6 +193,22 @@ fun Auth(
                                     authViewModel.signUpUser(name, email, password)
                                 },
                                 onDismiss = { authState = AuthState.None }
+                            )
+                        }
+                        AuthState.OTP -> {
+                            OTPBox(
+                                isLoading = authResult is AuthResult.Loading,
+                                onSubmit = { otp ->
+                                    authViewModel.verifyOTP(otp, VerificationType.SignUpVerification)
+                                },
+                                onDismiss = { authState = AuthState.None },
+                                onRequest = { authViewModel.requestEmailVerificationOtp() }
+                            )
+                        }
+                        else -> {
+                            AuthBox(
+                                onSignUpClicked = { authState = AuthState.SignUp },
+                                onSignInClicked = { authState = AuthState.SignIn }
                             )
                         }
                     }
@@ -275,6 +320,10 @@ fun AuthForm(
                 modifier = Modifier.height(60.dp),
                 enabled = !isLoading
             ) {
+                if(isLoading) CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.Black
+                )
                 Text(
                     buttonText,
                     color = Color.White,
@@ -289,6 +338,174 @@ fun AuthForm(
 }
 
 @Composable
+fun OtpTextField(
+    modifier: Modifier = Modifier,
+    otpText: String,
+    otpCount: Int = 6,
+    onOtpTextChange: (String, Boolean) -> Unit
+) {
+    BasicTextField(
+        modifier = modifier,
+        value = otpText,
+        onValueChange = {
+            if (it.length <= otpCount) {
+                onOtpTextChange.invoke(it, it.length == otpCount)
+            }
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        decorationBox = {
+            Row(horizontalArrangement = Arrangement.Center) {
+                repeat(otpCount) { index ->
+                    val char = when {
+                        index >= otpText.length -> ""
+                        else -> otpText[index].toString()
+                    }
+                    val isFocused = otpText.length == index
+                    Text(
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(60.dp)
+                            .border(
+                                width = if (isFocused) 2.dp else 1.dp,
+                                color = if (isFocused) Color.Black else Color.LightGray,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(top = 16.dp),
+                        text = char,
+                        fontSize = 22.sp,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center
+                    )
+                    if (index < otpCount - 1) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun OTPBox(
+    isLoading: Boolean,
+    onSubmit: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onRequest: () -> Unit
+) {
+    var otpValue by remember { mutableStateOf("") }
+    var isOtpComplete by remember { mutableStateOf(false) }
+
+    var ticks by remember { mutableIntStateOf(90) }
+    var isRunning by remember { mutableStateOf(true) }
+    LaunchedEffect(isRunning) {
+        if(isRunning) {
+            while (ticks > 0) {
+                delay(1000)
+                ticks--
+            }
+            isRunning = false
+        }
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .background(Color.White)
+            .padding(8.dp)
+    ) {
+        Text(
+            text = "Verify Your Email",
+            color = Color.Black,
+            fontSize = 25.sp,
+            fontFamily = FontFamily(Font(R.font.riveruta_medium)),
+            fontWeight = FontWeight.ExtraBold
+        )
+        Text(
+            text = "Enter the code sent to your email.",
+            color = Color.Gray,
+            fontSize = 16.sp,
+            fontFamily = FontFamily(Font(R.font.riveruta_medium)),
+            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
+            textAlign = TextAlign.Center
+        )
+        OtpTextField(
+            otpText = otpValue,
+            onOtpTextChange = { value, isComplete ->
+                otpValue = value
+                isOtpComplete = isComplete
+            }
+        )
+        Spacer(Modifier.height(32.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(
+                onClick = {
+                    isRunning = !isRunning
+                    ticks = 90
+                    onRequest()
+                },
+                enabled = !isRunning
+            ) {
+                Text(
+                    "Resend OTP",
+                    fontFamily = FontFamily(Font(R.font.riveruta_medium)),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = if(isRunning) Color.Gray else Color.Black
+                )
+            }
+            if(ticks > 0) {
+                Text(
+                    "${ticks}s",
+                    fontFamily = FontFamily(Font(R.font.riveruta_medium)),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
+            }
+        }
+        Spacer(Modifier.height(32.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    "Back",
+                    fontFamily = FontFamily(Font(R.font.riveruta_medium)),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
+            }
+            Button(
+                onClick = { onSubmit(otpValue) },
+                shape = RoundedCornerShape(30.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2c2c2c)),
+                modifier = Modifier.height(60.dp),
+                enabled = !isLoading && isOtpComplete
+            ) {
+                if (isLoading) CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White
+                )
+                Text(
+                    "Verify",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily(Font(R.font.riveruta_medium)),
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
 fun AuthBox(
     onSignUpClicked: () -> Unit,
     onSignInClicked: () -> Unit
@@ -300,7 +517,9 @@ fun AuthBox(
             onClick = onSignUpClicked,
             shape = RoundedCornerShape(30.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2c2c2c)),
-            modifier = Modifier.fillMaxWidth().height(60.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
         ) {
             Text(
                 "Create new account",
@@ -337,7 +556,12 @@ fun AuthBox(
             )
             IconButton(
                 onClick = {},
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 50.dp).size(50.dp).clip(RoundedCornerShape(30.dp)).background(Color.White)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 50.dp)
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(30.dp))
+                    .background(Color.White)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.google),

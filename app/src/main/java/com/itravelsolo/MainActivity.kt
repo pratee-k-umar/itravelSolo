@@ -17,7 +17,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.itravelsolo.Screen.Auth
-import com.itravelsolo.Screen.Auth.OTPVerify
 import com.itravelsolo.Screen.Main.Home
 import com.itravelsolo.Screen.Main.Profile
 import com.itravelsolo.Screen.OnBoard
@@ -25,7 +24,6 @@ import com.itravelsolo.Screen.Splash
 import com.itravelsolo.ui.theme.ItravelSoloTheme
 
 class MainActivity : ComponentActivity() {
-
     private val viewModel: MainViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashscreen = installSplashScreen()
@@ -76,9 +74,6 @@ fun Navigation() {
         navigation("auth", "auth_flow") {
             composable("auth") {
                 Auth(navController)
-            }
-            composable("otp") {
-                OTPVerify()
             }
         }
         navigation("home", "main_flow") {

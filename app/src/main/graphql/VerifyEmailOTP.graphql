@@ -1,0 +1,12 @@
+mutation VerifyEmailOtp($email: String!, $otp: String!) {
+    verifyEmailOtp(email: $email, otp: $otp) {
+        success
+        message
+        token
+        refreshToken
+        user {
+            id
+            emailVerified
+        }
+    }
+}

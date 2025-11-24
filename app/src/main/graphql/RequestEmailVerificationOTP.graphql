@@ -1,0 +1,6 @@
+mutation RequestEmailVerificationOtp($email: String!) {
+    requestEmailVerificationOtp(email: $email) {
+        success
+        message
+    }
+}
