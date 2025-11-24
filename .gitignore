@@ -1,3 +1,8 @@
+hs_err_pid*.log
+replay_pid*.log
+# General log files
+*.log
+# IDE-specific files (some already present, but good to ensure coverage)
 *.iml
 .gradle
 /local.properties
@@ -8,8 +13,51 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
+#macOS specific thumbnail/metadata files
+# More common IDE/environment ignores
+.idea/codeStyles/ # Code style settings, often team-specific but can be local overrides
+.idea/runConfigurations/ # Local run configurations for Android Studio
+.idea/*.iml # More general .iml files
+.idea/tasks.xml
+.idea/scopes/
+.idea/vcs.xml # VCS integration settings, often local
+.idea/gradle.xml # Gradle settings, can be local environment specific
+.idea/compiler.xml # Compiler settings, often local
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+.idea/migrations.xml
+.idea/material_theme_project_new.xml
+.idea/markdown.xml
+# Kotlin-specific caches/logs
+.kotlin/
+# Any other IDE-specific files not covered by default
+# Build artifacts
 /build
 /captures
 .externalNativeBuild
 .cxx
+# More common build ignores
+# Gradle settings
+.gradle/
+# Default build output directory for Android Studio projects
+/app/build/
+# Other generated files
+/generated/
+/out/
+# Local configuration files
+# local.properties (already present, but critical to keep!)
 local.properties
+# For debug keystores, usually for signing debug builds locally
+*.keystore
+*.jks
+# Any other sensitive or local configuration files
+# E.g., if you have any secret.properties or similar for API keys
+# Dependency caches
+# Maven/Gradle caches specific to your local machine
+.m2/
+.gradle/caches/
+.gradle/wrapper/dists/
+# Test/QA related, specific to local setup
+# If you have any specific output for tests you don't commit
+/test-results/
+/test-reports/
