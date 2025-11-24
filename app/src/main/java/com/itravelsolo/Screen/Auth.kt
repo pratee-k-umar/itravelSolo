@@ -91,14 +91,14 @@ fun Auth(navController: NavHostController) {
             }
             is AuthResult.AuthenticationSuccess -> {
                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
-                navController.navigate("home") {
+                navController.navigate("main") {
                     popUpTo(0) { inclusive = true }
                 }
                 authViewModel.resetResult()
             }
             is AuthResult.GeneralSuccess -> {
                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
-                navController.navigate("home") {
+                navController.navigate("main") {
                     popUpTo(0) { inclusive = true }
                 }
                 authViewModel.resetResult()
@@ -326,7 +326,7 @@ fun AuthForm(
                 )
                 Text(
                     buttonText,
-                    color = Color.White,
+                    color = if(isLoading) Color.Black else Color.White,
                     fontSize = 16.sp,
                     fontFamily = FontFamily(Font(R.font.riveruta_medium)),
                     fontWeight = FontWeight.ExtraBold,

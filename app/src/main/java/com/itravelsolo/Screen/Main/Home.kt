@@ -11,15 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 
 @Composable
-fun Home(navController: NavHostController) {
+fun Home(
+    navController: NavHostController
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text("Home")
-        Button(onClick = {navController.navigate("auth")}) {
-            Text("Logout")
-        }
     }
 }

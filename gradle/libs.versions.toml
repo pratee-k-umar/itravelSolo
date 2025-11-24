@@ -23,6 +23,7 @@ loggingInterceptorVersion = "4.11.0"
 moshiKotlin = "1.15.2"
 retrofit = "3.0.0"
 datastoreCore = "1.1.7"
+animation = "1.9.5"
 
 [libraries]
 androidx-compose-foundation = {group = "androidx.compose.foundation", name = "foundation"}
@@ -55,6 +56,7 @@ logging-interceptor-v4110 = { module = "com.squareup.okhttp3:logging-interceptor
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshiKotlin" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
+androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,11 +16,10 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
 import com.itravelsolo.Screen.Auth
-import com.itravelsolo.Screen.Main.Home
-import com.itravelsolo.Screen.Main.Profile
+import com.itravelsolo.Screen.MainApp
 import com.itravelsolo.Screen.MainViewModel
 import com.itravelsolo.Screen.MainViewModelFactory
 import com.itravelsolo.Screen.OnBoard
@@ -41,19 +41,36 @@ class MainActivity : ComponentActivity() {
                     factory = MainViewModelFactory(context)
                 )
                 val isLoggedIn by mainViewModel.isLoggedIn.collectAsState()
-                Navigation(isLoggedIn = isLoggedIn)
+                Navigation(
+                    isLoggedIn = isLoggedIn,
+                    mainViewModel = mainViewModel
+                )
             }
         }
     }
 }
 
 @Composable
-fun Navigation(isLoggedIn: Boolean) {
+fun Navigation(
+    isLoggedIn: Boolean,
+    mainViewModel: MainViewModel
+) {
     val navController = rememberNavController()
     var showOnboarding by remember { mutableStateOf(true) }
+
+    LaunchedEffect(key1 = Unit) {
+        mainViewModel.navigateToAuth.collect {
+            navController.navigate("auth") {
+                popUpTo(navController.graph.id) {
+                    inclusive = true
+                }
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
-        startDestination = if(isLoggedIn) "main_flow" else "splash"
+        startDestination = if(isLoggedIn) "main" else "splash"
     ) {
         composable("splash") {
             val destination = if(showOnboarding) "onBoarding" else "auth"
@@ -68,7 +85,7 @@ fun Navigation(isLoggedIn: Boolean) {
         composable("onboarding") {
             OnBoard(
                 onFinished = {
-                    navController.navigate("auth_flow") {
+                    navController.navigate("auth") {
                         popUpTo("onboarding") {
                             inclusive = true
                         }
@@ -77,18 +94,18 @@ fun Navigation(isLoggedIn: Boolean) {
                 }
             )
         }
-        navigation("auth", "auth_flow") {
-            composable("auth") {
-                Auth(navController)
-            }
+        composable(
+            "auth",
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "android-app://androidx.navigation/auth" }
+            )
+        ) {
+            Auth(navController)
         }
-        navigation("home", "main_flow") {
-            composable("home") {
-                Home(navController)
-            }
-            composable("profile") {
-                Profile(navController)
-            }
+        composable("main") {
+            MainApp(
+                mainViewModel = mainViewModel
+            )
         }
     }
 }
