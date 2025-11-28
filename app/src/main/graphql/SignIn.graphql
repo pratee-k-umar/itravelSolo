@@ -6,22 +6,6 @@ mutation SignIn($email: String!, $password: String!) {
         refreshToken
         user {
             id
-            firstName
-            lastName
-            email
-            emailVerified
-            mfaEnabled
-            isActive
-            profile {
-                profileImage
-                bio
-                profession
-                address
-                phoneNumber
-                profession
-                gender
-                dateOfBirth
-            }
         }
     }
 }

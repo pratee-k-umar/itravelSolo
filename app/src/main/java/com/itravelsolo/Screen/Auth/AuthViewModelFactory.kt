@@ -1,4 +1,4 @@
-package com.itravelsolo.Screen
+package com.itravelsolo.Screen.Auth
 
 import android.content.Context
 import androidx.lifecycle.ViewModel

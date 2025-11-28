@@ -5,22 +5,6 @@ mutation SignUp($input: RegisterUserInput!) {
         errors
         user {
             id
-            firstName
-            lastName
-            email
-            emailVerified
-            mfaEnabled
-            isActive
-            profile {
-                profileImage
-                bio
-                profession
-                address
-                phoneNumber
-                profession
-                gender
-                dateOfBirth
-            }
         }
     }
 }

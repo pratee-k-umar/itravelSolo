@@ -1,4 +1,4 @@
-package com.itravelsolo.Screen
+package com.itravelsolo.Screen.Auth
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent

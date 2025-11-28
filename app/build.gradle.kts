@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.logging.interceptor.v4110)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation(libs.androidx.datastore.core)
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -73,6 +74,9 @@ dependencies {
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.animation)
+    implementation(libs.transportation.consumer)
+    implementation(libs.androidx.tools.core)
+    implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

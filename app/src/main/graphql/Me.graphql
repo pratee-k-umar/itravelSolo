@@ -1,0 +1,22 @@
+query Me {
+    me {
+        id
+        firstName
+        lastName
+        email
+        emailVerified
+        mfaEnabled
+        isActive
+    }
+    profile {
+        id
+        profileImage
+        bio
+        address
+        phoneNumber
+        profession
+        gender
+        dateOfBirth
+        lastSeen
+    }
+}

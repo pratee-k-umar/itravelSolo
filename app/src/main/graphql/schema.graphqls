@@ -1,18 +1,19 @@
 type Query {
-  allUser: [UserType]
-  userById(id: UUID!): UserType
-  me: UserType
+    allUser: [UserType]
+    userById(id: UUID!): UserType
+    me: UserType
+    profile: ProfileType
 }
 
 type UserType {
-  id: UUID!
-  firstName: String!
-  lastName: String!
-  email: String!
-  emailVerified: Boolean!
-  mfaEnabled: Boolean!
-  isActive: Boolean!
-  profile: ProfileType
+    id: UUID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    emailVerified: Boolean!
+    mfaEnabled: Boolean!
+    isActive: Boolean!
+    profile: ProfileType
 }
 
 """
@@ -22,16 +23,16 @@ in fields, resolvers and input.
 scalar UUID
 
 type ProfileType {
-  id: UUID!
-  user: UserType!
-  profileImage: String
-  bio: String
-  address: String
-  phoneNumber: String
-  profession: String
-  gender: String
-  dateOfBirth: Date
-  lastSeen: DateTime!
+    id: UUID!
+    user: UserType!
+    profileImage: String
+    bio: String
+    address: String
+    phoneNumber: String
+    profession: String
+    gender: String
+    dateOfBirth: Date
+    lastSeen: DateTime!
 }
 
 """
@@ -49,25 +50,25 @@ value as specified by
 scalar DateTime
 
 type Mutation {
-  loginUser(email: String!, password: String!): LoginUser
-  verifyToken(token: String): Verify
-  refreshToken(token: String): Refresh
-  registerUser(input: RegisterUserInput!): RegisterUser
-  requestEmailVerificationOtp(email: String!): RequestEmailVerificationOTP
-  verifyEmailOtp(email: String!, otp: String!): VerifyEmailOTP
+    loginUser(email: String!, password: String!): LoginUser
+    verifyToken(token: String): Verify
+    refreshToken(token: String): Refresh
+    registerUser(input: RegisterUserInput!): RegisterUser
+    requestEmailVerificationOtp(email: String!): RequestEmailVerificationOTP
+    verifyEmailOtp(email: String!, otp: String!): VerifyEmailOTP
 }
 
 type LoginUser {
-  success: Boolean
-  message: String
-  mfaRequired: Boolean
-  token: String
-  refreshToken: String
-  user: UserType
+    success: Boolean
+    message: String
+    mfaRequired: Boolean
+    token: String
+    refreshToken: String
+    user: UserType
 }
 
 type Verify {
-  payload: GenericScalar!
+    payload: GenericScalar!
 }
 
 """
@@ -78,34 +79,34 @@ String, Boolean, Int, Float, List or Object.
 scalar GenericScalar
 
 type Refresh {
-  payload: GenericScalar!
-  refreshExpiresIn: Int!
-  token: String!
+    payload: GenericScalar!
+    refreshExpiresIn: Int!
+    token: String!
 }
 
 type RegisterUser {
-  user: UserType
-  success: Boolean
-  message: String
-  errors: [String]
+    user: UserType
+    success: Boolean
+    message: String
+    errors: [String]
 }
 
 input RegisterUserInput {
-  firstName: String!
-  lastName: String!
-  email: String!
-  password: String!
+    firstName: String!
+    lastName: String!
+    email: String!
+    password: String!
 }
 
 type RequestEmailVerificationOTP {
-  success: Boolean
-  message: String
+    success: Boolean
+    message: String
 }
 
 type VerifyEmailOTP {
-  success: Boolean
-  message: String
-  token: String
-  refreshToken: String
-  user: UserType
+    success: Boolean
+    message: String
+    token: String
+    refreshToken: String
+    user: UserType
 }

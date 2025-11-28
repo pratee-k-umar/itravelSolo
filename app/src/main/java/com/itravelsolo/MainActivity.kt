@@ -2,6 +2,7 @@ package com.itravelsolo
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
@@ -11,6 +12,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,22 +21,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
-import com.itravelsolo.Screen.Auth
-import com.itravelsolo.Screen.MainApp
+import com.itravelsolo.Screen.Auth.Auth
+import com.itravelsolo.Screen.Main.MainApp
 import com.itravelsolo.Screen.MainViewModel
 import com.itravelsolo.Screen.MainViewModelFactory
-import com.itravelsolo.Screen.OnBoard
-import com.itravelsolo.Screen.Splash
+import com.itravelsolo.Screen.Loading.OnBoard
+import com.itravelsolo.Screen.Loading.Splash
 import com.itravelsolo.ui.theme.ItravelSoloTheme
+import com.itravelsolo.utils.NetworkConnectivityObserver
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashscreen = installSplashScreen()
-//        splashscreen.setKeepOnScreenCondition {
-//            viewModel.isLoading.value
-//        }
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.Transparent.toArgb()))
         setContent {
             ItravelSoloTheme {
                 val context = LocalContext.current
@@ -41,10 +42,18 @@ class MainActivity : ComponentActivity() {
                     factory = MainViewModelFactory(context)
                 )
                 val isLoggedIn by mainViewModel.isLoggedIn.collectAsState()
-                Navigation(
-                    isLoggedIn = isLoggedIn,
-                    mainViewModel = mainViewModel
-                )
+                val networkStatus by mainViewModel.networkStatus.collectAsState()
+                splashscreen.setKeepOnScreenCondition {
+                    isLoggedIn == null
+                }
+                if(isLoggedIn != null) {
+                    val isOffline = networkStatus == NetworkConnectivityObserver.Status.Unavailable || networkStatus == NetworkConnectivityObserver.Status.Lost
+                    Navigation(
+                        isLoggedIn = isLoggedIn!!,
+                        mainViewModel = mainViewModel,
+                        isOffline = isOffline
+                    )
+                }
             }
         }
     }
@@ -53,7 +62,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Navigation(
     isLoggedIn: Boolean,
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    isOffline: Boolean
 ) {
     val navController = rememberNavController()
     var showOnboarding by remember { mutableStateOf(true) }
@@ -64,6 +74,7 @@ fun Navigation(
                 popUpTo(navController.graph.id) {
                     inclusive = true
                 }
+                launchSingleTop = true
             }
         }
     }
@@ -104,7 +115,8 @@ fun Navigation(
         }
         composable("main") {
             MainApp(
-                mainViewModel = mainViewModel
+                mainViewModel = mainViewModel,
+                 isOffline = isOffline
             )
         }
     }
