@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.itravelsolo.Screen.Main.Profile.ProfileViewModelFactory
 import com.itravelsolo.Screen.MainViewModel
 
 @Composable
@@ -63,7 +62,10 @@ fun Profile(
             is ProfileState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = state.message, color = Color.Red)
-                    Button(onClick = { /* Retry logic could go here */ }, modifier = Modifier.padding(top = 8.dp)) {
+                    Button(
+                        onClick = { /* Retry logic could go here */ },
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
                         Text("Retry")
                     }
                 }
