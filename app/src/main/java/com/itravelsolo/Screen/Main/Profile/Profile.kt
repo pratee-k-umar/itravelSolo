@@ -43,10 +43,11 @@ fun Profile(
 ) {
     val profileState by profileViewModel.profileState.collectAsState()
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(Color.Gray),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Spacer(modifier = Modifier.height(54.dp))
         Text(
             text = "My Profile",
             fontSize = 24.sp,
@@ -61,7 +62,6 @@ fun Profile(
             }
             is ProfileState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = state.message, color = Color.Red)
                     Button(
                         onClick = { /* Retry logic could go here */ },
                         modifier = Modifier.padding(top = 8.dp)
@@ -118,6 +118,7 @@ fun Profile(
                 ) {
                     Text("Logout")
                 }
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }

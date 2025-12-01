@@ -1,5 +1,9 @@
 package com.itravelsolo.Screen.Main
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,137 +21,206 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.itravelsolo.Screen.Main.Profile.ProfileState
+import com.itravelsolo.Screen.Main.Profile.ProfileViewModel
+import com.itravelsolo.Screen.Main.Profile.ProfileViewModelFactory
 
 val BgGreen = Color(0xFFE8F5E9)
 val DarkGreen = Color(0xFF0F1905)
 val AccentYellow = Color(0xFFDCE775)
 
 @Composable
-fun Home(
-    navController: NavHostController
-) {
+fun HomeLoading() {
     Box(
-        modifier = Modifier.fillMaxSize().background(BgGreen)
+        modifier = Modifier.fillMaxSize().background(BgGreen),
+        contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier.verticalScroll(
-                rememberScrollState()
-            ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            CircularProgressIndicator(
+                color = Color.Black,
+                modifier = Modifier.size(48.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun Home(
+    navController: NavHostController,
+    profileViewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModelFactory(LocalContext.current)
+    ),
+    locationViewModel: LocationViewModel = viewModel(
+        factory = LocationViewModelFactory(LocalContext.current)
+    )
+) {
+    val profileState by profileViewModel.profileState.collectAsState()
+    val locationState by locationViewModel.locationState.collectAsState()
+    val context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) {
+        locationViewModel.fetchLocationAndWeather()
+    }
+    LaunchedEffect(Unit) {
+        if(ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) locationViewModel.fetchLocationAndWeather()
+        else launcher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+    }
+
+    val isProfileLoading = profileState is ProfileState.Loading
+    val isLocationReady = !locationState.isLoading || locationState.error != null
+    val isLoading = isProfileLoading || !isLocationReady
+
+    if(isLoading) HomeLoading()
+    else {
+        val userName = when(val state = profileState) {
+            is ProfileState.Success -> state.user?.firstName ?: "Traveler"
+            else -> "Traveler"
+        }
+
+        Box(
+            modifier = Modifier.fillMaxSize().background(BgGreen)
+        ) {
+            Column(
+                modifier = Modifier.verticalScroll(
+                    rememberScrollState()
+                ),
             ) {
-                Column {
-                    Text(
-                        text = "Hi, Morgan",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                }
-                Card(
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(0.dp)
+                Spacer(modifier = Modifier.height(54.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Column {
+                        Text(
+                            text = "Hi $userName",
+                            fontSize = 45.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
                     Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-//                    Icon(
-//                        imageVector = {},
-//                        contentDescription = "Weather",
-//                        tint = Color(0xFFFFC107), // Sun color
-//                        modifier = Modifier.size(24.dp)
-//                    )
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Weather",
+                            tint = Color(0xFFFFC107),
+                            modifier = Modifier.size(24.dp)
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
-                            Text(text = "Weather", fontSize = 10.sp, color = Color.Gray)
-                            Text(text = "15 °C", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                text = "Weather",
+                                fontSize = 15.sp,
+                                color = Color.Black
+                            )
+                            Text(
+                                text = locationState.temperature,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
                         }
                     }
                 }
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(24.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "🇳🇴 ", fontSize = 16.sp)
-                        Text(
-                            text = "NORWAY",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.DarkGray,
-                            letterSpacing = 2.sp
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Nature\nPower",
-                        fontSize = 42.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.Black,
-                        lineHeight = 42.sp
-                    )
-                }
-                Card(
-                    shape = RoundedCornerShape(50.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier
-                        .height(100.dp)
-                        .width(60.dp)
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(24.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Outlined.Search,
-                            contentDescription = "Search",
-                            tint = Color.Black,
-                            modifier = Modifier.size(28.dp)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = locationState.countryCode, fontSize = 16.sp)
+                            Text(
+                                text = locationState.country,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.DarkGray,
+                                letterSpacing = 2.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Nature\nPower",
+                            fontSize = 42.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = Color.Black,
+                            lineHeight = 42.sp
+                        )
+                        Text(
+                            text = locationState.city,
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
+                    Card(
+                        shape = RoundedCornerShape(50.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        modifier = Modifier
+                            .height(100.dp)
+                            .width(60.dp)
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = "Search",
+                                tint = Color.Black,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    }
                 }
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
 //            CategoryChip(icon = Icons.Default.Hiking, text = "Hiking", isActive = true)
 //            CategoryChip(icon = Icons.Default.Kayaking, text = "Kayaking", isActive = false)
 //            CategoryChip(icon = Icons.Default.PedalBike, text = "Biking", isActive = false)
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .size(400.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray)
-            ) {
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .size(400.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                ) {
 //            Image(
 //                painter = painterResource(id = R.drawable.background),
 //                contentDescription = "Forest",
@@ -155,65 +228,66 @@ fun Home(
 //                modifier = Modifier.fillMaxSize()
 //            )
 
-                // 2. Gradient Overlay for text readability
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
-                                startY = 300f
+                    // 2. Gradient Overlay for text readability
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                                    startY = 300f
+                                )
                             )
-                        )
-                )
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(horizontal = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Text(
-                        text = "The Sounds of Nature",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "A real adventure where nature reveals its grandeur and beauty in its purest form.",
-                        fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.8f),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(horizontal = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Text(
+                            text = "The Sounds of Nature",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "A real adventure where nature reveals its grandeur and beauty in its purest form.",
+                            fontSize = 14.sp,
+                            color = Color.White.copy(alpha = 0.8f),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
 //                    TripStat(icon = Icons.Default.CalendarMonth, text = "7 days")
 //                    Spacer(modifier = Modifier.width(16.dp))
 //                    TripStat(icon = Icons.Default.Route, text = "10 km")
 //                    Spacer(modifier = Modifier.width(16.dp))
 //                    TripStat(icon = Icons.Default.Group, text = "8/10")
-                    }
+                        }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(30.dp))
-                            .background(Color.Black.copy(alpha = 0.5f))
-                            .padding(horizontal = 32.dp, vertical = 16.dp)
-                            .fillMaxWidth(0.7f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "Start Trip", color = Color.White, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(30.dp))
+                                .background(Color.Black.copy(alpha = 0.5f))
+                                .padding(horizontal = 32.dp, vertical = 16.dp)
+                                .fillMaxWidth(0.7f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "Start Trip", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(40.dp))
                     }
-                    Spacer(modifier = Modifier.height(40.dp))
                 }
             }
         }
@@ -250,6 +324,7 @@ fun CategoryChip(icon: ImageVector, text: String, isActive: Boolean) {
         }
     }
 }
+
 @Composable
 fun TripStat(icon: ImageVector, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {

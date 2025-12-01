@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -39,7 +37,7 @@ fun MainAppNavigation(
     ) {
         composable(BottomNavItem.Home.route) {
             Home(
-                navController = navController
+                navController = navController,
             )
         }
         composable(BottomNavItem.Profile.route) {
@@ -60,17 +58,23 @@ fun MainApp(
 
     Scaffold(
         modifier = Modifier.background(Color.Black),
-        bottomBar = {
-            AppBottomBar(navController = navController)
-        },
         contentWindowInsets = WindowInsets(0,0,0,0)
     ) { innerPadding ->
-        if(isOffline) NoInternetScreen()
-        else MainAppNavigation(
-            modifier = Modifier.padding(innerPadding),
-            navController = navController,
-            mainViewModel = mainViewModel
-        )
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if(isOffline) NoInternetScreen()
+            else MainAppNavigation(
+                modifier = Modifier.padding(innerPadding),
+                navController = navController,
+                mainViewModel = mainViewModel
+            )
+            Box(
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                AppBottomBar(navController = navController)
+            }
+        }
     }
 }
 
