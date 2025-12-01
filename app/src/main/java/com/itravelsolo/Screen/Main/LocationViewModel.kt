@@ -2,10 +2,14 @@ package com.itravelsolo.Screen.Main
 
 import android.content.Context
 import android.location.Geocoder
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.LocationServices
+import com.itravelsolo.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +25,8 @@ data class LocationData (
     val countryCode: String = "🌍",
     val city: String = "Unknown",
     val temperature: String = "--",
+    val weatherCondition: String = "Unknown",
+    val weatherIcon: Int = R.drawable.sun,
     val isLoading: Boolean = true,
     val error: String? = null
 )
@@ -39,13 +45,15 @@ class LocationViewModel(private val context: Context): ViewModel() {
             if(location != null) {
                 viewModelScope.launch {
                     val (country, code, city) = getCountryAndCity(location.latitude, location.longitude)
-                    val temp = fetchTemperature(location.latitude, location.longitude)
+                    val (temp, condition, icon) = fetchTemperature(location.latitude, location.longitude)
 
                     _locationState.value = LocationData(
                         country = country,
                         countryCode = code,
                         city = city,
                         temperature = temp,
+                        weatherCondition = condition,
+                        weatherIcon = icon,
                         isLoading = false
                     )
                 }
@@ -114,7 +122,7 @@ class LocationViewModel(private val context: Context): ViewModel() {
         return String(Character.toChars(firstLetter)) + String(Character.toChars(secondLetter))
     }
 
-    private suspend fun fetchTemperature(lat: Double, lon: Double): String {
+    private suspend fun fetchTemperature(lat: Double, lon: Double): Triple<String, String, Int> {
         return withContext(Dispatchers.IO) {
             try {
                 val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current_weather=true"
@@ -124,15 +132,34 @@ class LocationViewModel(private val context: Context): ViewModel() {
                 if (response.isSuccessful) {
                     val jsonData = response.body?.string()
                     val json = JSONObject(jsonData ?: "")
-                    val temp = json.getJSONObject("current_weather").getDouble("temperature")
-                    "$temp °C"
+                    val current = json.getJSONObject("current_weather")
+
+                    val temp = current.getDouble("temperature")
+                    val code = current.getInt("weathercode")
+
+                    val (condition, icon) = interpretWeatherCode(code)
+                    Triple("$temp °C", condition, icon)
                 } else {
-                    "--"
+                    Triple("--", "Unknown", Icons.Default.Refresh)
                 }
             } catch (e: Exception) {
-                "--"
-            }
+                e.printStackTrace()
+                Triple("--", "Error", Icons.Default.Refresh)
+            } as Triple<String, String, Int>
         }
+    }
+
+    private fun interpretWeatherCode(code: Int): Pair<String, Int> {
+        return when (code) {
+            0 -> "Clear Sky" to R.drawable.sun
+            1, 2, 3 -> "Cloudy" to R.drawable.cloudy
+            45, 48 -> "Foggy" to R.drawable.foggy
+            51, 53, 55 -> "Drizzle" to R.drawable.rain
+            61, 63, 65 -> "Rainy" to R.drawable.rain
+            71, 73, 75 -> "Snow" to R.drawable.snow
+            95, 96, 99 -> "Storm" to R.drawable.storm
+            else -> "Unknown" to Icons.Default.Refresh
+        } as Pair<String, Int>
     }
 }
 

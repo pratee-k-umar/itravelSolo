@@ -2,6 +2,7 @@ package com.itravelsolo.Screen.Main
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build.VERSION.SDK_INT
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -21,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -40,12 +39,19 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.ImageLoader
+import coil.compose.AsyncImage
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import com.itravelsolo.R
 import com.itravelsolo.Screen.Main.Profile.ProfileState
 import com.itravelsolo.Screen.Main.Profile.ProfileViewModel
 import com.itravelsolo.Screen.Main.Profile.ProfileViewModelFactory
@@ -57,7 +63,9 @@ val AccentYellow = Color(0xFFDCE775)
 @Composable
 fun HomeLoading() {
     Box(
-        modifier = Modifier.fillMaxSize().background(BgGreen),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgGreen),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -108,7 +116,9 @@ fun Home(
         }
 
         Box(
-            modifier = Modifier.fillMaxSize().background(BgGreen)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BgGreen)
         ) {
             Column(
                 modifier = Modifier.verticalScroll(
@@ -117,74 +127,85 @@ fun Home(
             ) {
                 Spacer(modifier = Modifier.height(54.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
                         Text(
-                            text = "Hi $userName",
-                            fontSize = 45.sp,
+                            text = "Hi, $userName \uD83D\uDC4B",
+                            fontSize = 30.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = Color.Black,
+                            fontFamily = FontFamily(Font(R.font.riveruta_medium))
                         )
                     }
                     Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Weather",
-                            tint = Color(0xFFFFC107),
-                            modifier = Modifier.size(24.dp)
+                        WeatherIcon(
+                            iconResId = locationState.weatherIcon,
+                            modifier = Modifier.size(40.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(
                                 text = "Weather",
                                 fontSize = 15.sp,
-                                color = Color.Black
+                                color = Color.Black,
+                                fontFamily = FontFamily(Font(R.font.riveruta_medium))
                             )
                             Text(
                                 text = locationState.temperature,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Black
+                                color = Color.Black,
+                                fontFamily = FontFamily(Font(R.font.riveruta_medium))
                             )
                         }
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = locationState.countryCode, fontSize = 16.sp)
+                            Text(
+                                text = locationState.countryCode,
+                                fontSize = 16.sp,
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = locationState.country,
-                                fontSize = 14.sp,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = Color.DarkGray,
-                                letterSpacing = 2.sp
+                                fontFamily = FontFamily(Font(R.font.riveruta_medium))
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = locationState.city,
+                                fontSize = 20.sp,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(top = 4.dp),
+                                fontFamily = FontFamily(Font(R.font.riveruta_medium))
                             )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Nature\nPower",
-                            fontSize = 42.sp,
-                            fontWeight = FontWeight.Normal,
+                            fontSize = 65.sp,
+                            fontWeight = FontWeight.SemiBold,
                             color = Color.Black,
-                            lineHeight = 42.sp
-                        )
-                        Text(
-                            text = locationState.city,
-                            fontSize = 12.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(top = 4.dp)
+                            fontFamily = FontFamily(Font(R.font.riveruta_medium)),
+                            lineHeight = 60.sp
                         )
                     }
                     Card(
@@ -234,7 +255,10 @@ fun Home(
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
-                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 0.7f)
+                                    ),
                                     startY = 300f
                                 )
                             )
@@ -332,4 +356,24 @@ fun TripStat(icon: ImageVector, text: String) {
         Spacer(modifier = Modifier.width(4.dp))
         Text(text = text, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
+}
+
+@Composable
+fun WeatherIcon(
+    iconResId: Int,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+
+    val imageLoader = ImageLoader.Builder(context).components {
+        if (SDK_INT >= 28) add(ImageDecoderDecoder.Factory())
+        else add(GifDecoder.Factory())
+    }.build()
+
+    AsyncImage(
+        model = iconResId,
+        imageLoader = imageLoader,
+        contentDescription = "Weather Animation",
+        modifier = modifier
+    )
 }

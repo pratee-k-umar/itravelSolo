@@ -63,6 +63,8 @@ dependencies {
     implementation(libs.androidx.datastore.core)
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("io.coil-kt:coil-gif:2.5.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

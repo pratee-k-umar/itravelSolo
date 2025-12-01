@@ -43,7 +43,7 @@ fun Profile(
 ) {
     val profileState by profileViewModel.profileState.collectAsState()
     Column(
-        modifier = Modifier.fillMaxSize().background(Color.Gray),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
