@@ -5,6 +5,7 @@ import com.itravelSolo.apollo.MeQuery
 import com.itravelSolo.apollo.RequestEmailVerificationOtpMutation
 import com.itravelSolo.apollo.SignInMutation
 import com.itravelSolo.apollo.SignUpMutation
+import com.itravelSolo.apollo.UpdateLocationMutation
 import com.itravelSolo.apollo.VerifyEmailOtpMutation
 import com.itravelSolo.apollo.type.RegisterUserInput
 import com.itravelSolo.apollo.type.RequestEmailVerificationOTP
@@ -34,6 +35,16 @@ class AuthRepository {
 
     suspend fun verifyEmailOTP(email: String, otp: String): ApolloResponse<VerifyEmailOtpMutation.Data> {
         return apolloClient.mutation(VerifyEmailOtpMutation(email = email, otp = otp)).execute()
+    }
+
+    suspend fun updateUserLocation(lat: Double, lon: Double, showLocation: Boolean): ApolloResponse<UpdateLocationMutation.Data> {
+        return apolloClient.mutation(
+            UpdateLocationMutation(
+                latitude = lat,
+                longitude = lon,
+                showLocation = showLocation
+            )
+        ).execute()
     }
 
     suspend fun me(): ApolloResponse<MeQuery.Data> {

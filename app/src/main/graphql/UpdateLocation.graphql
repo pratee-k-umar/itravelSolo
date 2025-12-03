@@ -1,0 +1,9 @@
+mutation UpdateLocation($latitude: Decimal!, $longitude: Decimal!, $showLocation: Boolean!) {
+    updateLocation(latitude: $latitude, longitude: $longitude, showLocation: $showLocation) {
+        success
+        message
+        profile {
+            id
+        }
+    }
+}

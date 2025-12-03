@@ -1,15 +1,17 @@
 package com.itravelsolo.Screen.Main
 
+import android.Manifest
 import android.content.Context
 import android.location.Geocoder
+import androidx.annotation.RequiresPermission
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.LocationServices
 import com.itravelsolo.R
+import com.itravelsolo.data.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,16 +30,47 @@ data class LocationData (
     val weatherCondition: String = "Unknown",
     val weatherIcon: Int = R.drawable.sun,
     val isLoading: Boolean = true,
+    val isLocationPublic: Boolean = true,
     val error: String? = null
 )
 
 class LocationViewModel(private val context: Context): ViewModel() {
+    private val repository = AuthRepository()
     private val _locationState = MutableStateFlow(LocationData())
     val locationState: StateFlow<LocationData> = _locationState
 
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     private val client = OkHttpClient()
 
+    fun sendLocationUpdate() {
+        viewModelScope.launch {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    viewModelScope.launch {
+                        try {
+                            repository.updateUserLocation(
+                                lat = location.latitude,
+                                lon = location.longitude,
+                                showLocation = _locationState.value.isLocationPublic
+                            )
+                        }
+                        catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
+    fun toggleLocationPrivacy(isPublic: Boolean) {
+        _locationState.value = _locationState.value.copy(isLocationPublic = isPublic)
+
+        sendLocationUpdate()
+    }
+
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     fun fetchLocationAndWeather() {
         _locationState.value = _locationState.value.copy(isLoading = true)
 
@@ -46,6 +79,8 @@ class LocationViewModel(private val context: Context): ViewModel() {
                 viewModelScope.launch {
                     val (country, code, city) = getCountryAndCity(location.latitude, location.longitude)
                     val (temp, condition, icon) = fetchTemperature(location.latitude, location.longitude)
+
+                    sendLocationUpdate()
 
                     _locationState.value = LocationData(
                         country = country,
@@ -75,19 +110,17 @@ class LocationViewModel(private val context: Context): ViewModel() {
             try {
                 val geoCoder = Geocoder(context, Locale.ENGLISH)
                 val address = geoCoder.getFromLocation(lat, lon, 1)
-                address?.isNotEmpty()?.let {
-                    if(!it) {
-                        val address = address[0]
-                        val country = address?.countryName ?: "Unknown"
-                        val code = countryCodeToEmoji(address?.countryCode ?: "")
-                        val city = address.locality ?: address.subAdminArea ?: address.adminArea ?: "Unknown City"
-                        Triple(country.toUpperCase(), code, city)
-                    } else Triple("Unknown", "🌍", "Unknown")
+                if(!address.isNullOrEmpty()) {
+                    val address = address[0]
+                    val country = address.countryName ?: "Unknown"
+                    val code = countryCodeToEmoji(address.countryCode ?: "")
+                    val city = address.locality ?: address.subAdminArea ?: address.adminArea ?: "Unknown City"
+
+                    return@withContext Triple(country.uppercase(), code, city)
                 }
             } catch(e: Exception) {
                 e.printStackTrace()
-                Triple("Error", "🌍", "Unknown")
-            } as Triple<String, String, String>
+            }
 
             try {
                 val url = "https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=$lat&longitude=$lon&localityLanguage=en"

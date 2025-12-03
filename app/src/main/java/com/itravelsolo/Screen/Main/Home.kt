@@ -60,6 +60,13 @@ val BgGreen = Color(0xFFE8F5E9)
 val DarkGreen = Color(0xFF0F1905)
 val AccentYellow = Color(0xFFDCE775)
 
+data class HomeTheme (
+    val quote: String,
+    val imageRes: Int,
+    val backgroundColor: Color,
+    val contentColor: Color
+)
+
 @Composable
 fun HomeLoading() {
     Box(
@@ -177,7 +184,9 @@ fun Home(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
                                 text = locationState.countryCode,
                                 fontSize = 16.sp,
@@ -195,7 +204,6 @@ fun Home(
                                 text = locationState.city,
                                 fontSize = 20.sp,
                                 color = Color.Gray,
-                                modifier = Modifier.padding(top = 4.dp),
                                 fontFamily = FontFamily(Font(R.font.riveruta_medium))
                             )
                         }

@@ -17,10 +17,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.itravelsolo.Screen.Main.LocationViewModel
+import com.itravelsolo.Screen.Main.LocationViewModelFactory
 import com.itravelsolo.Screen.MainViewModel
 
 @Composable
@@ -39,9 +46,13 @@ fun Profile(
     mainViewModel: MainViewModel,
     profileViewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModelFactory(LocalContext.current)
+    ),
+    locationViewModel: LocationViewModel = viewModel(
+        factory = LocationViewModelFactory(LocalContext.current)
     )
 ) {
     val profileState by profileViewModel.profileState.collectAsState()
+    val locationState by locationViewModel.locationState.collectAsState()
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -108,6 +119,44 @@ fun Profile(
                         ProfileItem(label = "Profession", value = profile?.profession ?: "Not specified")
                         ProfileItem(label = "Location", value = profile?.address ?: "Unknown")
                         ProfileItem(label = "Verified", value = if (user?.emailVerified == true) "Yes" else "No")
+                    }
+                }
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Show Location",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Allow others to see where you are",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+                        Switch(
+                            checked = locationState.isLocationPublic,
+                            onCheckedChange = { isChecked ->
+                                locationViewModel.toggleLocationPrivacy(isChecked)
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = Color.Black
+                            )
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))
