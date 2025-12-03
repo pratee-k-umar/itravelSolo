@@ -1,11 +1,11 @@
 package com.itravelsolo.Screen.Main
 
 import android.Manifest
+import android.app.Application
 import android.content.Context
 import android.location.Geocoder
 import androidx.annotation.RequiresPermission
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -34,7 +34,8 @@ data class LocationData (
     val error: String? = null
 )
 
-class LocationViewModel(private val context: Context): ViewModel() {
+class LocationViewModel(application: Application): AndroidViewModel(application) {
+    private val context = getApplication<Application>().applicationContext
     private val repository = AuthRepository()
     private val _locationState = MutableStateFlow(LocationData())
     val locationState: StateFlow<LocationData> = _locationState
@@ -44,20 +45,31 @@ class LocationViewModel(private val context: Context): ViewModel() {
 
     fun sendLocationUpdate() {
         viewModelScope.launch {
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                if (location != null) {
-                    viewModelScope.launch {
-                        try {
-                            repository.updateUserLocation(
-                                lat = location.latitude,
-                                lon = location.longitude,
-                                showLocation = _locationState.value.isLocationPublic
-                            )
-                        }
-                        catch (e: Exception) {
-                            e.printStackTrace()
+            if (androidx.core.content.ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                try {
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                        if (location != null) {
+                            viewModelScope.launch {
+                                try {
+                                    repository.updateUserLocation(
+                                        lat = location.latitude,
+                                        lon = location.longitude,
+                                        showLocation = _locationState.value.isLocationPublic
+                                    )
+                                }
+                                catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
                         }
                     }
+                }
+                catch (e: SecurityException) {
+                    e.printStackTrace()
                 }
             }
         }
@@ -170,35 +182,45 @@ class LocationViewModel(private val context: Context): ViewModel() {
                     val temp = current.getDouble("temperature")
                     val code = current.getInt("weathercode")
 
-                    val (condition, icon) = interpretWeatherCode(code)
+                    val isDay = current.getInt("is_day") == 1
+
+                    val (condition, icon) = interpretWeatherCode(code, isDay)
                     Triple("$temp °C", condition, icon)
                 } else {
-                    Triple("--", "Unknown", Icons.Default.Refresh)
+                    Triple("--", "Unknown", R.drawable.sun)
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                Triple("--", "Error", Icons.Default.Refresh)
-            } as Triple<String, String, Int>
+                Triple("--", "Error", R.drawable.sun)
+            }
         }
     }
 
-    private fun interpretWeatherCode(code: Int): Pair<String, Int> {
+    private fun interpretWeatherCode(code: Int, isDay: Boolean): Pair<String, Int> {
         return when (code) {
-            0 -> "Clear Sky" to R.drawable.sun
+            0 -> {
+                if (isDay) "Clear Sky" to R.drawable.sun
+                else "Clear Sky" to R.drawable.night
+            }
             1, 2, 3 -> "Cloudy" to R.drawable.cloudy
             45, 48 -> "Foggy" to R.drawable.foggy
             51, 53, 55 -> "Drizzle" to R.drawable.rain
             61, 63, 65 -> "Rainy" to R.drawable.rain
             71, 73, 75 -> "Snow" to R.drawable.snow
             95, 96, 99 -> "Storm" to R.drawable.storm
-            else -> "Unknown" to Icons.Default.Refresh
-        } as Pair<String, Int>
+            else -> "Unknown" to R.drawable.sun
+        }
     }
 }
 
 class LocationViewModelFactory(private val context: Context): ViewModelProvider.Factory {
     override fun <T: ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(LocationViewModel::class.java)) return LocationViewModel(context) as T
+        if(modelClass.isAssignableFrom(LocationViewModel::class.java)) {
+            val application = context.applicationContext as Application
+
+            @Suppress("UNCHECKED_CAST")
+            return LocationViewModel(application) as T
+        }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
